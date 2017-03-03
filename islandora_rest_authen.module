@@ -36,6 +36,9 @@ function islandora_rest_authen_init() {
             if (islandora_rest_authen_check_ip()) {
               islandora_rest_authen_log_in($rest_username);
             }
+            else {
+              header('HTTP/1.0 401 Unauthorized', TRUE);
+            }
           }
           else {
             islandora_rest_authen_log_in($rest_username);
@@ -84,7 +87,7 @@ function islandora_rest_authen_log_in($username) {
  *   TRUE if the client address is in the ranges, FALSE if not.
  */
 function islandora_rest_authen_check_ip() {
-  $is_allowed = array();
+  $is_allowed = FALSE;
   $ip_ranges = variable_get('islandora_rest_authen_ips', '');
 
   // Get client's IP address and convert it to a long integer for
@@ -104,20 +107,14 @@ function islandora_rest_authen_check_ip() {
       $comparable_low = ip2long($low);
       $comparable_high = ip2long($high);
       if ($comparable_address >= $comparable_low && $comparable_address <= $comparable_high) {
-        $is_allowed[] = 1;
-      }
-      else {
-        $is_allowed[] = 0;
+        $is_allowed = TRUE;
       }
     }
 
     // Check individual IP addresses.
     if (!is_null($low) && is_null($high)) {
       if (ip_address() == $low) {
-        $is_allowed[] = 1;
-      }
-      else {
-        $is_allowed[] = 0;
+        $is_allowed = TRUE;
       }
     }
 
