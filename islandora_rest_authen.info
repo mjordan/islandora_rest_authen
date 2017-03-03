@@ -1,5 +1,5 @@
 name = Islandora REST Authen
-description = "Allows Islandora REST clients to authenticate with a token and by IP range."
+description = "Allows Islandora REST clients to authenticate with an API key and by IP range."
 package = Islandora
 configure = admin/islandora/tools/rest_authen
 dependencies[] = islandora

@@ -58,7 +58,7 @@ function islandora_rest_authen_admin_settings() {
     '#type' => 'textarea',
     '#title' => t('REST users'),
     '#default_value' => variable_get('islandora_rest_authen_users', ''),
-    '#description' => t('A list of REST username/token pairs, one per line. Separate usernames and tokens with a colon. Each username/token pair must be included in a "X-Authorization-User" HTTP request header. If you want to restrict access to the REST interface to a specific IP address, add it to the end of the username/token string, separated from it by a pipe (`|`). Ranges are allowed in the format 111.111.111.111:222.222.222.222. Multiple addresses can be separated with a comma. See the README for an example.'),
+    '#description' => t('A list of REST username/key pairs, one per line. Separate usernames and keys with a colon. Each username/key pair must be included in a "X-Authorization-User" HTTP request header. If you want to restrict access to the REST interface to a specific IP address, add it to the end of the username/key string, separated from it by a pipe (`|`). Ranges are allowed in the format 111.111.111.111:222.222.222.222. Multiple addresses can be separated with a comma. See the README for an example.'),
   );
   return system_settings_form($form);
 }
