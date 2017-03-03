@@ -1,0 +1,126 @@
+<?php
+
+/**
+ * @file
+ * Module file.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function islandora_rest_authen_menu() {
+  $items = array();
+  $items['admin/islandora/tools/rest_authen'] = array(
+    'title' => 'Islandora REST Authen',
+    'description' => 'Configure the Islandora REST Authen module.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('islandora_rest_authen_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_init().
+ */
+function islandora_rest_authen_init() {
+  if (preg_match('#^islandora/rest/#', current_path())) {
+    $request_headers = getallheaders();
+    if (isset($request_headers['X-Authorization-User'])) {
+      list($rest_username, $rest_password) = explode(':', $request_headers['X-Authorization-User']);
+      $authorized_users = preg_split("/\\r\\n|\\r|\\n/", variable_get('islandora_rest_authen_users', ''));
+      foreach ($authorized_users as $credentials) {
+        if ($credentials == $request_headers['X-Authorization-User']) {
+          if (strlen(variable_get('islandora_rest_authen_ips', ''))) {
+            if (islandora_rest_authen_check_ip()) {
+              islandora_rest_authen_log_in($rest_username);
+            }
+          }
+          else {
+            islandora_rest_authen_log_in($rest_username);
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Admin settings form builder.
+ */
+function islandora_rest_authen_admin_settings() {
+  $form['islandora_rest_authen_users'] = array(
+    '#type' => 'textarea',
+    '#title' => t('REST users'),
+    '#default_value' => variable_get('islandora_rest_authen_users', ''),
+    '#description' => t('A list of REST username/token pairs, one per line. Separate usernames and tokens with a colon. Each username/token pair must be included in a "X-Authorization-User" HTTP request header.'),
+  );
+  $form['islandora_rest_authen_ips'] = array(
+    '#type' => 'textarea',
+    '#title' => t('IP address whitelist'),
+    '#default_value' => variable_get('islandora_rest_authen_ips', ''),
+    '#description' => t('IP address ranges, one per line, that the users listed above may access the REST interface. Separate the low and high ends of each range with a colon, e.g. 111.111.111.111:222.222.222.222. Asterisks are not allowed. Single IP addresses are also allowed, each on its own line. Leave empty to allow from all IPs.'),
+  );
+  return system_settings_form($form);
+}
+
+/**
+ * Logs in the REST user.
+ *
+ * @param string $username
+ *   The user's username.
+ */
+function islandora_rest_authen_log_in($username) {
+  $account = user_load_by_name($username);
+  $form_state['uid'] = $account->uid;
+  user_login_submit(array(), $form_state);
+}
+
+/**
+ * Compares the client's IP address against a list of allowed addresses.
+ *
+ * @return bool
+ *   TRUE if the client address is in the ranges, FALSE if not.
+ */
+function islandora_rest_authen_check_ip() {
+  $is_allowed = array();
+  $ip_ranges = variable_get('islandora_rest_authen_ips', '');
+
+  // Get client's IP address and convert it to a long integer for
+  // comparison with the registered ranges.
+  $comparable_address = ip2long(ip_address());
+
+  $ranges = preg_split("/\\r\\n|\\r|\\n/", $ip_ranges);
+  foreach ($ranges as $range) {
+    $range = preg_replace('/\s+/', '', $range);
+    if (!strlen($range)) {
+      continue;
+    }
+    list($low, $high) = array_pad(explode(':', $range, 2), 2, NULL);
+
+    // Check ranges of IP addresses.
+    if (!is_null($low) && !is_null($high)) {
+      $comparable_low = ip2long($low);
+      $comparable_high = ip2long($high);
+      if ($comparable_address >= $comparable_low && $comparable_address <= $comparable_high) {
+        $is_allowed[] = 1;
+      }
+      else {
+        $is_allowed[] = 0;
+      }
+    }
+
+    // Check individual IP addresses.
+    if (!is_null($low) && is_null($high)) {
+      if (ip_address() == $low) {
+        $is_allowed[] = 1;
+      }
+      else {
+        $is_allowed[] = 0;
+      }
+    }
+
+  }
+  return $is_allowed;
+}
