@@ -41,7 +41,7 @@ resty:iamarandom7key|199.60.1.0:199.60.18.255,142.58.224.0:142.58.255.255
 
 IP whitelists only apply to REST requests and not to logging into the Drupal website.
 
-A second configuration option, "Log API key authentication attempts", adds an entry to the Drupal system log every time a request is made to the REST interface by one of the registered users.
+A second configuration option, "Log API key authentication attempts", adds an entry to the Drupal system log every time a request is made to the REST interface by one of the registered users. It is enabled by default.
 
 ## Security implications
 
@@ -53,7 +53,7 @@ You may want to consider the following before using this module:
 * Creating a special Drupal user for REST requests and setting its account status to "Blocked" is good practice. These users should be given minimal Drupal permissions, specifically, only those permissions defined by the Islandora REST module.
 * Restricting access from specific IP addresses or IP ranges is good practice. Do it.
 * Use API keys that are difficult to guess. UUID version 4 strings make good API keys.
-* Enable logging of authentication requests using API keys (it is enabled by default).
+* Enable logging of authentication requests using API keys.
 
 
 ## Maintainer

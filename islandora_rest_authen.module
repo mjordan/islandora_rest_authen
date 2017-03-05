@@ -25,7 +25,7 @@ function islandora_rest_authen_menu() {
  * Implements hook_init().
  */
 function islandora_rest_authen_init() {
-  islandora_rest_authen_authen();
+  islandora_rest_authen_authenticate();
 }
 
 /**
@@ -50,13 +50,14 @@ function islandora_rest_authen_admin_settings() {
 /**
  * Authenticates the REST user.
  */
-function islandora_rest_authen_authen() {
+function islandora_rest_authen_authenticate() {
   if (preg_match('#^islandora/rest/#', current_path())) {
     $request_headers = getallheaders();
     if (isset($request_headers['X-Authorization-User'])) {
-      list($rest_username, $rest_password) = explode(':', $request_headers['X-Authorization-User']);
+      list($rest_username, $rest_key) = explode(':', $request_headers['X-Authorization-User']);
       $authorized_users = preg_split("/\\r\\n|\\r|\\n/", variable_get('islandora_rest_authen_users', ''));
       foreach ($authorized_users as $authorized_user_details) {
+        // Check for presence of IP whitelist.
         if (preg_match('/\|/', $authorized_user_details)) {
           list($rest_credentials, $rest_ip_whitelist) = explode('|', $authorized_user_details);
         }
@@ -64,12 +65,16 @@ function islandora_rest_authen_authen() {
           $rest_credentials = $authorized_user_details;
           $rest_ip_whitelist = '';
         }
+
         if ($rest_credentials == $request_headers['X-Authorization-User']) {
+          // Check request's IP address against whitelist.
           if (strlen($rest_ip_whitelist)) {
+            // If credentials match and IP address is OK, log user in.
             if (islandora_rest_authen_check_ip($rest_ip_whitelist)) {
               islandora_rest_authen_log_in($rest_username);
             }
             else {
+              // If credentials match but IP address is bad, do not log user in.
               if (variable_get('islandora_rest_authen_log_api_key_logins', 1)) {
                 watchdog('islandora_rest_authen', "Login attempt using REST API key failed for user !user from disallowed IP address !ip_address.", array('!user' => $rest_username, '!ip_address' => ip_address()));
               }
@@ -77,10 +82,13 @@ function islandora_rest_authen_authen() {
             }
           }
           else {
+            // If credentials match and there is no IP whitelist, log user in.
             islandora_rest_authen_log_in($rest_username);
           }
         }
         else {
+          // If credentials do not match, do not log user in.
+          islandora_rest_authen_log_in($rest_username);
           if (variable_get('islandora_rest_authen_log_api_key_logins', 1)) {
             watchdog('islandora_rest_authen', "Login attempt using REST API key failed for user !user.", array('!user' => $rest_username));
           }
