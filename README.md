@@ -11,7 +11,7 @@ Utility module to provide username/API key authentication against the Islandora 
 
 Enable this module as you would any other, and configure it at `admin/islandora/tools/rest_authen`.
 
-There is only one configuration option, "REST users", which is a list of username/key pairs, one per line and delimited by a colon (`:`). The username half of the pair corresponds to an existing Drupal user. The key half of the pair is used to authenticate REST requests made by the user. Keys can be of any length, and can contain any characters except colons and pipes (which are both used as delimters; more on pipes below):
+The configuration option "REST users" is a list of username/key pairs, one per line and delimited by a colon (`:`). The username half of the pair corresponds to an existing Drupal user. The key half of the pair is used to authenticate REST requests made by the user. Keys can be of any length, and can contain any characters except colons and pipes (which are both used as delimters; more on pipes below):
 
 ```
 resty:6f172401-a806-4b0a-920b-032cf3a06a56
@@ -41,16 +41,19 @@ resty:iamarandom7key|199.60.1.0:199.60.18.255,142.58.224.0:142.58.255.255
 
 IP whitelists only apply to REST requests and not to logging into the Drupal website.
 
+A second configuration option, "Log API key authentication attempts", adds an entry to the Drupal system log every time a request is made to the REST interface by one of the registered users.
+
 ## Security implications
 
 You may want to consider the following before using this module:
 
-* Using API keys over an unencrypted HTTP connection is no less secure than using Drupal's standard basic authentication. If someone is sniffing traffic to your site, they have access to all data that passes between the client and server. Using HTTPS on your site is much more secure in general.
+* Using API keys over an unencrypted HTTP connection is no less secure than using Drupal's standard cookie-based authentication. If someone is sniffing traffic to your site, they have access to all data that passes between the client and server. Using HTTPS on your site is much more secure in general.
 * API keys as implemented by this module are included in HTTP request headers, which are not normally logged by web servers and don't appear accidently in URLs pasted into emails/chat/etc., unlike API keys implemented as URL parameters.
 * As stated above, API keys as implemented by this module cannot be used to log in via Drupal's login form. They only apply to REST API requests.
 * Creating a special Drupal user for REST requests and setting its account status to "Blocked" is good practice. These users should be given minimal Drupal permissions, specifically, only those permissions defined by the Islandora REST module.
 * Restricting access from specific IP addresses or IP ranges is good practice. Do it.
 * Use API keys that are difficult to guess. UUID version 4 strings make good API keys.
+* Enable logging of authentication requests using API keys (it is enabled by default).
 
 
 ## Maintainer
