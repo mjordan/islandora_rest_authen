@@ -7,7 +7,7 @@ Utility module to provide username/API key authentication against the Islandora 
 * [Islandora](https://github.com/Islandora/islandora)
 * [Islandora REST](https://github.com/discoverygarden/islandora_rest)
 
-## Configuration
+## Configuration and usage
 
 Enable this module as you would any other, and configure it at `admin/islandora/tools/rest_authen`.
 
@@ -48,13 +48,13 @@ IP whitelists only apply to REST requests and not to logging into the Drupal web
 
 You can also make API keys expire. If you add a date in ISO 8601 format (e.g. 2017-03-06T19:23:48-08:00) to the end of the username/key string, the API key will only authenticate requests up until that time. If you add an expiry date and do not specify an IP range or address, you will need to seprate the expiry date from the username/key pair with double pipes (`||`), which in effect defines an empty IP range:
 
-Expiry date with IP range:
+Expiry date with IP address or range:
 
 ```
 resty:iamarandom7key|199.60.1.0:199.60.18.255|2017-03-06T19:23:48-08:00
 ```
 
-Expiry date without IP address:
+Expiry date without IP address/range:
 
 ```
 resty:iamarandom7key||2017-03-06T19:23:48-08:00
@@ -83,7 +83,7 @@ You may want to consider the following before using this module:
 
 ## Development and feedback
 
-Bug reports, use cases and suggestions are welcom. If you want to open a pull request, please open an issue first.
+Bug reports, use cases and suggestions are welcome. If you want to open a pull request, please open an issue first.
 
 ## License
 
