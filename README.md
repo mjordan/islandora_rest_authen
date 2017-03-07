@@ -43,13 +43,13 @@ IP whitelists only apply to REST requests and not to logging into the Drupal web
 
 You can also make API keys expire. If you add a date in ISO 8601 format (e.g. 2017-03-06T19:23:48-08:00) to the end of the username/key string, the API key will only authenticate requests up until that time. If you add an expiry date and do not specify an IP range or address, you will need to seprate the expiry date from the username/key pair with double pipes (`||`), which in effect defines an empty IP range:
 
-Expiry date with and IP range:
+Expiry date with IP range:
 
 ```
 resty:iamarandom7key|199.60.1.0:199.60.18.255|2017-03-06T19:23:48-08:00
 ```
 
-Expiry date without and IP address:
+Expiry date without IP address:
 
 ```
 resty:iamarandom7key||2017-03-06T19:23:48-08:00
@@ -65,9 +65,10 @@ You may want to consider the following before using this module:
 * Using API keys over an unencrypted HTTP connection is no less secure than using Drupal's standard cookie-based authentication. If someone is sniffing traffic to your site, they have access to all data that passes between the client and server. Using HTTPS on your site is much more secure in general.
 * API keys as implemented by this module are included in HTTP request headers, which are not normally logged by web servers and don't appear accidently in URLs pasted into emails/chat/etc., unlike API keys implemented as URL parameters.
 * As stated above, API keys as implemented by this module cannot be used to log in via Drupal's login form. They only apply to REST API requests.
+* Use API keys that are difficult to guess. UUID version 4 strings make good API keys.
 * Creating a special Drupal user for REST requests and setting its account status to "Blocked" is good practice. These users should be given minimal Drupal permissions, specifically, only those permissions defined by the Islandora REST module.
 * Restricting access from specific IP addresses or IP ranges is good practice. Do it.
-* Use API keys that are difficult to guess. UUID version 4 strings make good API keys.
+* If the client does not need ongoing access to your REST interface, use an expiry date.
 * Enable logging of authentication requests using API keys.
 
 

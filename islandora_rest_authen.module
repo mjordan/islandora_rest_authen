@@ -99,12 +99,13 @@ function islandora_rest_authen_authenticate() {
         }
         else {
           // If credentials do not match, do not log user in.
-          islandora_rest_authen_log_in($rest_username);
           if (variable_get('islandora_rest_authen_log_api_key_logins', 1)) {
             watchdog('islandora_rest_authen', "Login attempt using REST API key failed for user !user.", array('!user' => $rest_username));
           }
           header('HTTP/1.0 401 Unauthorized', TRUE);
+          exit;
         }
+
       }
     }
   }
@@ -173,7 +174,7 @@ function islandora_rest_authen_check_ip($ip_ranges) {
 }
 
 /**
- * Compares the API key's expiry date, if one is present.
+ * Compares the current time to the API key's expiry date, if one is present.
  *
  * @param string $entry
  *   The authorized user entry.
@@ -190,16 +191,19 @@ function islandora_rest_authen_check_expiry($entry) {
     $now = time();
     $expiry_date = $entry_parts[2];
     if (strtotime($expiry_date) > $now) {
+      // Expiry date is in the future.
       return TRUE;
     }
     else {
       if (variable_get('islandora_rest_authen_log_api_key_logins', 1)) {
         watchdog('islandora_rest_authen', "Login attempt using expired REST API key failed for user !user.", array('!user' => $username));
       }
+      // Expiry data is in the past.
       return FALSE;
     }
   }
   else {
+    // There is no expiry date.
     return TRUE;
   }
 }
