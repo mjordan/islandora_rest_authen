@@ -41,6 +41,21 @@ resty:iamarandom7key|199.60.1.0:199.60.18.255,142.58.224.0:142.58.255.255
 
 IP whitelists only apply to REST requests and not to logging into the Drupal website.
 
+You can also make API keys expire. If you add a date in ISO 8601 format (e.g. 2017-03-06T19:23:48-08:00) to the end of the username/key string, the API key will only authenticate requests up until that time. If you add an expiry date and do not specify an IP range or address, you will need to seprate the expiry date from the username/key pair with double pipes (`||`), which in effect defines an empty IP range:
+
+Expiry date with and IP range:
+
+```
+resty:iamarandom7key|199.60.1.0:199.60.18.255|2017-03-06T19:23:48-08:00
+```
+
+Expiry date without and IP address:
+
+```
+resty:iamarandom7key||2017-03-06T19:23:48-08:00
+```
+
+
 A second configuration option, "Log API key authentication attempts", adds an entry to the Drupal system log every time a request is made to the REST interface by one of the registered users. It is enabled by default.
 
 ## Security implications
