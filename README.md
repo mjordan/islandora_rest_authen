@@ -17,7 +17,12 @@ The configuration option "REST users" is a list of username/key pairs, one per l
 resty:6f172401-a806-4b0a-920b-032cf3a06a56
 ```
 
-A `username:key` string registered in the "REST users" admin setting must accompany REST requests in an "X-Authorization-User" HTTP header. If the string in the header matches one of the registered `username:key` pairs, the user is authenticated and the request continues. If it doesn't, the reqeust is denied.
+A `username:key` string registered in the "REST users" admin setting must accompany REST requests in an "X-Authorization-User" HTTP header, e.g.:
+
+`curl -H "X-Authorization-User: resty:6f172401-a806-4b0a-920b-032cf3a06a56" "http://localhost:8000/islandora/rest/v1/object/book:16"`
+
+
+If the string in the header matches one of the registered `username:key` pairs, the user is authenticated and the request continues. If it doesn't, the reqeust is denied.
 
 Users in the list are regular Drupal users, and should be assigned appropriate permissions in the "Islandora REST" section of `admin/people/permissions`. The only difference between these users and other users on the site is that when identified in REST requests, they are authenticated using the accompanying key. In other words, this authentication bypasses the normal Drupal login mechanism for REST requests. In order to log into the Drupal website like any other user would, they need to enter their username and password into the Drupal login form. They cannot authenticate via the login form using using their key. If you do not want REST users to be able to log into your site by entering their regular Drupal credentials into the login form, set their account status to "Blocked".
 

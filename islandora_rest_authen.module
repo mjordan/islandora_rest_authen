@@ -66,41 +66,46 @@ function islandora_rest_authen_authenticate() {
           $rest_ip_whitelist = '';
         }
 
+        // Perform tests to allow/deny request.
         if ($rest_credentials == $request_headers['X-Authorization-User']) {
-          // Check request's IP address against whitelist.
           if (strlen($rest_ip_whitelist)) {
-            // If credentials match and IP address is OK, log user in.
-            if (islandora_rest_authen_check_ip($rest_ip_whitelist)) {
-              // Check API key's expiry date.
+            if (islandora_rest_authen_check_ip($rest_username, $rest_ip_whitelist)) {
               if (!islandora_rest_authen_check_expiry($authorized_user_details)) {
+                // Condition: Credentials match, IP address is OK,
+                // token has expired.
                 header('HTTP/1.0 401 Unauthorized', TRUE);
                 exit;
               }
+              // Condition: Credentials match, IP address is allowed,
+              // expiry is OK.
               islandora_rest_authen_log_in($rest_username);
             }
             else {
-              // If credentials match but IP address is bad, do not log user in.
-              if (variable_get('islandora_rest_authen_log_api_key_logins', 1)) {
-                watchdog('islandora_rest_authen', "Login attempt using REST API key failed for user !user from disallowed IP address !ip_address.", array('!user' => $rest_username, '!ip_address' => ip_address()));
-              }
+              // Condition: Credentials match, but IP address is disallowed.
               header('HTTP/1.0 401 Unauthorized', TRUE);
               exit;
             }
           }
           else {
-            // Check API key's expiry date.
             if (!islandora_rest_authen_check_expiry($authorized_user_details)) {
+              // Condition: Credentials match, there is no IP address
+              // whitelist, token has expired.
               header('HTTP/1.0 401 Unauthorized', TRUE);
               exit;
             }
-            // If credentials match and there is no IP whitelist, log user in.
+            // Condition: Credentials match, there is no IP address whitelist,
+            // expiry is OK.
             islandora_rest_authen_log_in($rest_username);
           }
         }
         else {
-          // If credentials do not match, do not log user in.
+          // Condition: Credentials do not match. Nothing else matters.
           if (variable_get('islandora_rest_authen_log_api_key_logins', 1)) {
-            watchdog('islandora_rest_authen', "Login attempt using REST API key failed for user !user.", array('!user' => $rest_username));
+            watchdog(
+              'islandora_rest_authen',
+              "Login attempt using REST API key failed for user !user.",
+              array('!user' => $rest_username)
+            );
           }
           header('HTTP/1.0 401 Unauthorized', TRUE);
           exit;
@@ -129,13 +134,15 @@ function islandora_rest_authen_log_in($username) {
 /**
  * Compares the client's IP address against a list of allowed addresses.
  *
+ * @param string $username
+ *   The username from the REST credentials.
  * @param string $ip_ranges
  *   The string containing the IP ranges to check.
  *
  * @return bool
  *   TRUE if the client address is in the ranges, FALSE if not.
  */
-function islandora_rest_authen_check_ip($ip_ranges) {
+function islandora_rest_authen_check_ip($username, $ip_ranges) {
   if (!strlen($ip_ranges)) {
     return FALSE;
   }
@@ -169,6 +176,9 @@ function islandora_rest_authen_check_ip($ip_ranges) {
       }
     }
 
+  }
+  if (!$is_allowed && variable_get('islandora_rest_authen_log_api_key_logins', 1)) {
+    watchdog('islandora_rest_authen', "Login attempt using REST API key failed for user !user from disallowed IP address !ip_address.", array('!user' => $username, '!ip_address' => ip_address()));
   }
   return $is_allowed;
 }
