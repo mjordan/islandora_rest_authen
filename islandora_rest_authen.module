@@ -90,8 +90,7 @@ function islandora_rest_authen_hash_key($form, $form_state) {
  *   The hashed string.
  */
 function islandora_rest_authen_get_hash($string) {
-  // require_once DRUPAL_ROOT . '/' . variable_get('password_inc', 'includes/password.inc');
-  module_load_include('inc', 'content', 'includes/password');
+  require_once DRUPAL_ROOT . '/' . variable_get('password_inc', 'includes/password.inc');
   return user_hash_password($string);
 }
 
@@ -106,26 +105,30 @@ function islandora_rest_authen_authenticate() {
       list($rest_username, $request_key) = explode(':', $request_headers['X-Authorization-User']);
       $authorized_users = preg_split("/\\r\\n|\\r|\\n/", variable_get('islandora_rest_authen_users', ''));
       foreach ($authorized_users as $authorized_user_details) {
+        list($local_username, $local_key, $ip_whitelist, $expiry) = explode('|', $authorized_user_details);
+
+
+        require_once DRUPAL_ROOT . '/' . variable_get('password_inc', 'includes/password.inc');
+        $hashed_request_key = _password_crypt('sha512', $request_key, $local_key);
+
+
         // Check for presence of IP whitelist.
-        if (preg_match('/\|/', $authorized_user_details)) {
-          list($rest_credentials, $rest_ip_whitelist) = explode('|', $authorized_user_details);
+        // if (preg_match('/\|/', $authorized_user_details)) {
+        if (!isset($ip_whitelist)) {
+          // list($rest_credentials, $rest_ip_whitelist) = explode('|', $authorized_user_details);
+          $ip_whitelist = '';
         }
-        else {
-          $rest_credentials = $authorized_user_details;
-          $rest_ip_whitelist = '';
-        }
-
-
-        module_load_include('inc', 'content', 'includes/password');
-        $hash = _password_crypt('sha512', $request_key, $hashed_key);
-
-
+        // else {
+          // $rest_credentials = $authorized_user_details;
+          // $rest_ip_whitelist = '';
+        // }
 
         // Perform tests to allow/deny request.
-        // if ($rest_username == ) {
-        if ($rest_credentials == $request_headers['X-Authorization-User']) {
-          if (strlen($rest_ip_whitelist)) {
-            if (islandora_rest_authen_check_ip($rest_username, $rest_ip_whitelist)) {
+        // if (($rest_username == $local_username) && ($request_key == $local_key)) {
+        if (($rest_username == $local_username) && ($hashed_request_key == $local_key)) {
+        // if ($rest_credentials == $request_headers['X-Authorization-User']) {
+          if (strlen($ip_whitelist)) {
+            if (islandora_rest_authen_check_ip($rest_username, $ip_whitelist)) {
               if (!islandora_rest_authen_check_expiry($authorized_user_details)) {
                 // Condition: Credentials match, IP address is OK,
                 // token has expired.
@@ -252,10 +255,10 @@ function islandora_rest_authen_check_ip($username, $ip_ranges) {
  */
 function islandora_rest_authen_check_expiry($entry) {
   $entry_parts = explode('|', $entry);
-  list($username, $key) = explode(':', $entry_parts[0]);
-  if (count($entry_parts) === 3) {
+  // list($username, $key, $ips, $expiry) = explode(':', $entry_parts[0]);
+  if (count($entry_parts) === 4) {
     $now = time();
-    $expiry_date = $entry_parts[2];
+    $expiry_date = $entry_parts[3];
     if (strtotime($expiry_date) > $now) {
       // Expiry date is in the future.
       return TRUE;
