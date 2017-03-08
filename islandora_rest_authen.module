@@ -31,13 +31,39 @@ function islandora_rest_authen_init() {
 /**
  * Admin settings form builder.
  */
-function islandora_rest_authen_admin_settings() {
+function islandora_rest_authen_admin_settings($form, &$form_state) {
   $form['islandora_rest_authen_users'] = array(
     '#type' => 'textarea',
     '#title' => t('REST users'),
     '#default_value' => variable_get('islandora_rest_authen_users', ''),
     '#description' => t('A list of REST username/key pairs, one per line. Separate usernames and keys with a colon. Each username/key pair must be included in a "X-Authorization-User" HTTP request header. If you want to restrict access to the REST interface to a specific IP address, add it to the end of the username/key string, separated from it by a pipe (`|`). Ranges are allowed in the format 111.111.111.111:222.222.222.222. Multiple addresses and ranges can be separated with a comma. If you want access to the REST interface to expire at a specific date, add it to the end of the userename/key/IP address string, separated from it by a pipe and in the ISO 8601 date format (e.g. 2017-03-06T19:23:48-08:00). See this module\'s README for examples.'),
   );
+
+  $form['islandora_rest_authen_key'] = array(
+    '#type' => 'textfield',
+    '#prefix' => '<div id="islandora_rest_authen_key">',
+    '#suffix' => '</div>',
+    '#default_value' => '',
+    '#attributes' => array(
+      'placeholder' => t('Plaintext key to encrypt'),
+    ),
+  );
+
+  if (!empty($form_state['values']['islandora_rest_authen_hash_key_submit'])) {
+    $form['islandora_rest_authen_key']['#value'] = islandora_rest_authen_get_hash($form_state['values']['islandora_rest_authen_key']);
+    $form['islandora_rest_authen_key']['#description'] = t('After clicking on the "Encrypt key" button, copy the new value into the key position in the username:key entry above.');
+  }
+
+  $form['islandora_rest_authen_hash_key_submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Encrypt key'),
+    "#executes_submit_callback" => FALSE,
+    '#ajax' => array(
+      'callback' => 'islandora_rest_authen_hash_key',
+      'wrapper' => 'islandora_rest_authen_key',
+    ),
+  );
+
   $form['islandora_rest_authen_log_api_key_logins'] = array(
     '#type' => 'checkbox',
     '#title' => t('Log API key authentication attempts'),
@@ -48,13 +74,36 @@ function islandora_rest_authen_admin_settings() {
 }
 
 /**
+ * Ajax callback function.
+ */
+function islandora_rest_authen_hash_key($form, $form_state) {
+  return $form['islandora_rest_authen_key'];
+}
+
+/**
+ * Hashes a string.
+ *
+ * @param string $string
+ *   The string to hash.
+ *
+ * @return string
+ *   The hashed string.
+ */
+function islandora_rest_authen_get_hash($string) {
+  // require_once DRUPAL_ROOT . '/' . variable_get('password_inc', 'includes/password.inc');
+  module_load_include('inc', 'content', 'includes/password');
+  return user_hash_password($string);
+}
+
+
+/**
  * Authenticates the REST user.
  */
 function islandora_rest_authen_authenticate() {
   if (preg_match('#^islandora/rest/#', current_path())) {
     $request_headers = getallheaders();
     if (isset($request_headers['X-Authorization-User'])) {
-      list($rest_username, $rest_key) = explode(':', $request_headers['X-Authorization-User']);
+      list($rest_username, $request_key) = explode(':', $request_headers['X-Authorization-User']);
       $authorized_users = preg_split("/\\r\\n|\\r|\\n/", variable_get('islandora_rest_authen_users', ''));
       foreach ($authorized_users as $authorized_user_details) {
         // Check for presence of IP whitelist.
@@ -66,7 +115,14 @@ function islandora_rest_authen_authenticate() {
           $rest_ip_whitelist = '';
         }
 
+
+        module_load_include('inc', 'content', 'includes/password');
+        $hash = _password_crypt('sha512', $request_key, $hashed_key);
+
+
+
         // Perform tests to allow/deny request.
+        // if ($rest_username == ) {
         if ($rest_credentials == $request_headers['X-Authorization-User']) {
           if (strlen($rest_ip_whitelist)) {
             if (islandora_rest_authen_check_ip($rest_username, $rest_ip_whitelist)) {
