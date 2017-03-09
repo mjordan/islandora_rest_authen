@@ -36,7 +36,7 @@ function islandora_rest_authen_admin_settings($form, &$form_state) {
     '#type' => 'textarea',
     '#title' => t('REST users'),
     '#default_value' => variable_get('islandora_rest_authen_users', ''),
-    '#description' => t('A list of REST username/encrypted key pairs, one per line. Separate usernames and keys with a pipe ("|"). Each username/plain-text key pair must be included in a "X-Authorization-User" HTTP request header. If you want to restrict access to the REST interface to a specific IP address, add it to the end of the username/key string, separated from it by a pipe. Ranges are allowed in the format 111.111.111.111:222.222.222.222. Multiple addresses and ranges can be separated with a comma. If you want access to the REST interface to expire at a specific date, add it to the end of the userename/key/IP address string, separated from it by a pipe and in the ISO 8601 date format (e.g. 2017-03-06T19:23:48-08:00). See this module\'s README for examples.'),
+    '#description' => t('A list of REST username/encrypted key pairs, one per line. Separate usernames and keys with a pipe ("|"). Each username/plaintext key pair must be included in a "X-Authorization-User" HTTP request header. If you want to restrict access to the REST interface to a specific IP address, add it to the end of the username/key string, separated from it by a pipe. Ranges are allowed in the format 111.111.111.111:222.222.222.222. Multiple addresses and ranges can be separated with a comma. If you want access to the REST interface to expire at a specific date, add it to the end of the userename/key/IP address string, separated from it by a pipe and in the ISO 8601 date format (e.g. 2017-03-06T19:23:48-08:00). See this module\'s README for examples.'),
   );
 
   $form['islandora_rest_authen_key'] = array(
@@ -45,7 +45,7 @@ function islandora_rest_authen_admin_settings($form, &$form_state) {
     '#suffix' => '</div>',
     '#size' => 100,
     '#default_value' => '',
-    '#description' => t('Enter a plain-text key here to encrypt it, then enter the encrypted version into the "key" field in the "REST" users entry.'),
+    '#description' => t('Enter a plaintext key here to encrypt it, then enter the encrypted version into the "key" field in the "REST" users entry.'),
     '#attributes' => array(
       'placeholder' => t('Plaintext key to encrypt'),
     ),
