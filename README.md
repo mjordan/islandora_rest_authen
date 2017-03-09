@@ -33,7 +33,7 @@ The plaintext version of a username/key pair registered in the "REST users" admi
 
 (Note that in the request, the username/plaintext key pair is separated by a colon, not a pipe.)
 
-During a request, Drupal applies its encryption algorithm to the incoming plaintext key, and ff the encrypted version of the key matches the encrypted key stored with the username, the user is authenticated and the request continues. If it doesn't match, the request is denied.
+During a request, Drupal applies its encryption algorithm to the incoming plaintext key, and if the encrypted version of the key matches the encrypted key stored with the username, the user is authenticated and the request continues. If it doesn't match, the request is denied.
 
 ### User management
 
