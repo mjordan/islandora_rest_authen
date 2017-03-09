@@ -16,16 +16,16 @@ Enable this module as you would any other, and configure it at `admin/islandora/
 The configuration option "REST users" is a list of username/key pairs, delimited by a colon (`|`), one pair per line. The username half of the pair corresponds to an existing Drupal user. The key half of the pair, which is encrypted using the same method that Drupal uses to encrypt passwords, is used to authenticate REST requests made by the user:
 
 ```
-resty|$S$D/zZv63BjzJo4rdKASjRkfbZrdNc1mcf8RFZfR4m0mmieIbbnPjM`
+resty|$S$D/zZv63BjzJo4rdKASjRkfbZrdNc1mcf8RFZfR4m0mmieIbbnPjM
 ```
 
-Plaintext keys can contain any character other than a colon (`:`).`
+Plaintext keys can contain any character other than a colon (`:`).
 
 ### Encrypting keys
 
 It is important to remember that you distribute plaintext keys to people using your REST API, and save the encrypted version of those keys in the "REST users" field.
 
-To encrypt a key, use the utility provided within the admin settings form. Enter the plaintext key and click the "Encrypt key" button, then copy the resulting string into the record in the "REST users" field.
+To encrypt a key, use the utility provided within the admin settings form. Enter the plaintext key and click the "Encrypt key" button, then copy the resulting string into the pipe-delimited record in the "REST users" field.
 
 ### Making REST requests using a key
 
@@ -33,7 +33,7 @@ A username/plaintext key pair registered in the "REST users" admin setting must 
 
 `curl -H "X-Authorization-User: resty:6f172401-a806-4b0a-920b-032cf3a06a56" "http://localhost:8000/islandora/rest/v1/object/book:16"`
 
-Note that the username/plaintext key pair is separated by a colon in the request. If the encrypted version of the key in the header matches the encrypted key with the username, the user is authenticated and the request continues. If it doesn't match, the request is denied.
+Note that the username/plaintext key pair is separated by a colon, not a pipe, in the request. If the encrypted version of the key in the header matches the encrypted key with the username, the user is authenticated and the request continues. If it doesn't match, the request is denied.
 
 ### User management
 
