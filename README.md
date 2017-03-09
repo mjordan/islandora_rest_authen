@@ -86,7 +86,7 @@ You may want to consider the following before using this module:
 * As stated above, API keys as implemented by this module cannot be used to log in via Drupal's login form. They only apply to REST API requests.
 * Use API keys that are difficult to guess. UUID version 4 strings make good API keys.
 * Keys are stored in the database encrypted using the same function that Drupal uses to encrypt passwords.
-* Creating special Drupal users for REST requests and setting their account status to "Blocked" is good practice. These users should be given minimal Drupal permissions, specifically, only those permissions defined by the Islandora REST module.
+* Create special Drupal users for REST requests and setting their account status to "Blocked" is good practice. Following the Principle of least privilege, these users should be given minimal Drupal permissions, specifically, only those permissions defined by the Islandora REST module.
 * Restricting access from specific IP addresses or IP ranges is good practice. Do it.
 * If the client does not need ongoing access to your REST interface, apply an expiry date.
 * Enable logging of authentication requests using API keys.
