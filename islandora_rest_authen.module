@@ -97,6 +97,7 @@ function islandora_rest_authen_authenticate() {
         // Get the hashed version of the key supplied in the request.
         require_once DRUPAL_ROOT . '/' . variable_get('password_inc', 'includes/password.inc');
         $hashed_request_key = _password_crypt('sha512', $request_key, $local_key);
+
         // Check for presence of IP whitelist.
         if (!isset($ip_whitelist)) {
           $ip_whitelist = '';
@@ -108,7 +109,7 @@ function islandora_rest_authen_authenticate() {
             if (islandora_rest_authen_check_ip($rest_username, $ip_whitelist)) {
               if (!islandora_rest_authen_check_expiry($authorized_user_details)) {
                 // Condition: Credentials match, IP address is OK,
-                // token has expired.
+                // key has expired.
                 header('HTTP/1.0 401 Unauthorized', TRUE);
                 exit;
               }
@@ -125,7 +126,7 @@ function islandora_rest_authen_authenticate() {
           else {
             if (!islandora_rest_authen_check_expiry($authorized_user_details)) {
               // Condition: Credentials match, there is no IP address
-              // whitelist, token has expired.
+              // whitelist, key has expired.
               header('HTTP/1.0 401 Unauthorized', TRUE);
               exit;
             }
