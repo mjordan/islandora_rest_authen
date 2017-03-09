@@ -13,7 +13,7 @@ Utility module to provide username/API key authentication against the Islandora 
 
 Enable this module as you would any other, and configure it at `admin/islandora/tools/rest_authen`.
 
-The configuration option "REST users" is a list of username/key pairs, delimited by a colon (`|`), one pair per line. The username half of the pair corresponds to an existing Drupal user. The key half of the pair, which is encrypted using the same method that Drupal uses to encrypt passwords, is used to authenticate REST requests made by the user:
+The configuration option "REST users" is a list of username/key pairs, delimited by a pipe (`|`), one pair per line. The username half of the pair corresponds to an existing Drupal user. The key half of the pair, which is encrypted using the same method that Drupal uses to encrypt passwords, is used to authenticate REST requests made by the user:
 
 ```
 resty|$S$D/zZv63BjzJo4rdKASjRkfbZrdNc1mcf8RFZfR4m0mmieIbbnPjM
