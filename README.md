@@ -19,11 +19,9 @@ The configuration option "REST users" is a list of username/key pairs, delimited
 resty|$S$D/zZv63BjzJo4rdKASjRkfbZrdNc1mcf8RFZfR4m0mmieIbbnPjM
 ```
 
-Plaintext keys can contain any character other than a colon (`:`).
-
 ### Encrypting keys
 
-It is important to remember that you distribute plaintext keys to people using your REST API, and save the encrypted version of those keys in the "REST users" field.
+It is important to remember that you distribute plaintext keys to people using your REST API, and save the encrypted version of those keys in the "REST users" field. Plaintext keys can contain any character other than a colon (`:`).
 
 To encrypt a key, use the utility provided within the admin settings form. Enter the plaintext key and click the "Encrypt key" button, then copy the resulting string into the pipe-delimited record in the "REST users" field.
 
