@@ -43,6 +43,7 @@ function islandora_rest_authen_admin_settings($form, &$form_state) {
     '#type' => 'textfield',
     '#prefix' => '<div id="islandora_rest_authen_key">',
     '#suffix' => '</div>',
+    '#size' => 100,
     '#default_value' => '',
     '#description' => t('Enter a plain-text key here to encrypt it, then enter the encrypted version into the "key" field in the "REST" users entry.'),
     '#attributes' => array(
