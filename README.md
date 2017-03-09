@@ -27,11 +27,13 @@ To encrypt a key, use the utility provided within the admin settings form. Enter
 
 ### Making REST requests using a key
 
-A username/plaintext key pair registered in the "REST users" admin setting must accompany REST requests in an "X-Authorization-User" HTTP header, e.g.:
+The plaintext version of a username/key pair registered in the "REST users" admin setting must accompany REST requests in an "X-Authorization-User" HTTP header, e.g.:
 
 `curl -H "X-Authorization-User: resty:6f172401-a806-4b0a-920b-032cf3a06a56" "http://localhost:8000/islandora/rest/v1/object/book:16"`
 
-Note that the username/plaintext key pair is separated by a colon, not a pipe, in the request. If the encrypted version of the key in the header matches the encrypted key with the username, the user is authenticated and the request continues. If it doesn't match, the request is denied.
+(Note that in the request, the username/plaintext key pair is separated by a colon, not a pipe.)
+
+During a request, Drupal applies its encryption algorithm to the incoming plaintext key, and ff the encrypted version of the key matches the encrypted key stored with the username, the user is authenticated and the request continues. If it doesn't match, the request is denied.
 
 ### User management
 
