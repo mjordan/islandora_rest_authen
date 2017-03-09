@@ -19,6 +19,8 @@ The configuration option "REST users" is a list of username/key pairs, delimited
 resty|$S$D/zZv63BjzJo4rdKASjRkfbZrdNc1mcf8RFZfR4m0mmieIbbnPjM`
 ```
 
+Plaintext keys can contain any character other than a colon (`:`).`
+
 ### Encrypting keys
 
 It is important to remember that you distribute plaintext keys to people using your REST API, and save the encrypted version of those keys in the "REST users" field.
@@ -27,15 +29,15 @@ To encrypt a key, use the utility provided within the admin settings form. Enter
 
 ### Making REST requests using a key
 
-A `username/plaintext key` string registered in the "REST users" admin setting must accompany REST requests in an "X-Authorization-User" HTTP header, e.g.:
+A username/plaintext key pair registered in the "REST users" admin setting must accompany REST requests in an "X-Authorization-User" HTTP header, e.g.:
 
-`curl -H "X-Authorization-User: resty|6f172401-a806-4b0a-920b-032cf3a06a56" "http://localhost:8000/islandora/rest/v1/object/book:16"`
+`curl -H "X-Authorization-User: resty:6f172401-a806-4b0a-920b-032cf3a06a56" "http://localhost:8000/islandora/rest/v1/object/book:16"`
 
-If the encrypted version of the key in the header matches the encrypted key with the username, the user is authenticated and the request continues. If it doesn't match, the reqeust is denied.
+Note that the username/plaintext key pair is separated by a colon in the request. If the encrypted version of the key in the header matches the encrypted key with the username, the user is authenticated and the request continues. If it doesn't match, the request is denied.
 
 ### User management
 
-Usernames in the list correspond to existing Drupal users, who should be assigned appropriate permissions in the "Islandora REST" section of `admin/people/permissions`. The only difference between these users and other users on the site is that when identified in REST requests with an accompanying `X-Authorization-User` header, they are authenticated using the accompanying key. In other words, the `username/key` authentication bypasses the normal Drupal login mechanism for REST requests. In order to log into the Drupal website like any other user would, these users need to enter their username and password into the Drupal login form. They cannot authenticate via the login form using using their key. If you do not want REST users to be able to log into your site by entering their regular Drupal credentials into the login form (see "Security implications", below), set their account status to "Blocked".
+Usernames in the list correspond to existing Drupal users, who should be assigned appropriate permissions in the "Islandora REST" section of `admin/people/permissions`. The only difference between these users and other users on the site is that when identified in REST requests with an accompanying `X-Authorization-User` header, they are authenticated using the accompanying key. In other words, the username/key authentication bypasses the normal Drupal login mechanism for REST requests. In order to log into the Drupal website like any other user would, these users need to enter their username and password into the Drupal login form. They cannot authenticate via the login form using using their key. If you do not want REST users to be able to log into your site by entering their regular Drupal credentials into the login form (see "Security implications", below), set their account status to "Blocked".
 
 ### IP whitelists and key expiry dates
 
@@ -73,6 +75,7 @@ Expiry date without IP address/range:
 resty|$S$D/zZv63BjzJo4rdKASjRkfbZrdNc1mcf8RFZfR4m0mmieIbbnPjM||2017-03-06T19:23:48-08:00
 ```
 
+### Logging
 
 A second configuration option, "Log API key authentication attempts", adds an entry to the Drupal system log every time a request is made to the REST interface by one of the registered users. It is enabled by default.
 
