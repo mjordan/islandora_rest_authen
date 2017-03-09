@@ -11,37 +11,39 @@ Utility module to provide username/API key authentication against the Islandora 
 
 Enable this module as you would any other, and configure it at `admin/islandora/tools/rest_authen`.
 
-The configuration option "REST users" is a list of username:key pairs, delimited by a colon (`:`), one pair per line. The username half of the pair corresponds to an existing Drupal user. The key half of the pair is used to authenticate REST requests made by the user. Keys can be of any length, and can contain any characters except colons and pipes (which are both used as delimters; more on pipes below):
+The configuration option "REST users" is a list of username:key pairs, delimited by a colon (`:`), one pair per line. The username half of the pair corresponds to an existing Drupal user. The key half of the pair, which is encrypted using the same method that Drupal uses to encrypt passwords, is used to authenticate REST requests made by the user. Keys can be of any length, and can contain any characters:
 
 ```
-resty:6f172401-a806-4b0a-920b-032cf3a06a56
+resty:$S$D/zZv63BjzJo4rdKASjRkfbZrdNc1mcf8RFZfR4m0mmieIbbnPjM`
 ```
 
-A `username:key` string registered in the "REST users" admin setting must accompany REST requests in an "X-Authorization-User" HTTP header, e.g.:
+To encrypt a key, use the utility provided within the admin settings form. Enter the plaintext key and click the "Encrypt key" button, then copy the resulting string into the record in the "REST users" field.
+
+A `username:plaintext key` string registered in the "REST users" admin setting must accompany REST requests in an "X-Authorization-User" HTTP header, e.g.:
 
 `curl -H "X-Authorization-User: resty:6f172401-a806-4b0a-920b-032cf3a06a56" "http://localhost:8000/islandora/rest/v1/object/book:16"`
 
 
-If the string in the header matches one of the registered `username:key` pairs, the user is authenticated and the request continues. If it doesn't, the reqeust is denied.
+If the encrypted version of the string in the header matches encrypted key registered in one of the `username:key` pairs, the user is authenticated and the request continues. If it doesn't, the reqeust is denied.
 
-Usernamess in the list correspond to existing Drupal users, who should be assigned appropriate permissions in the "Islandora REST" section of `admin/people/permissions`. The only difference between these users and other users on the site is that when identified in REST requests with an accompanying `X-Authorization-User` header, they are authenticated using the accompanying key. In other words, the `username:key` authentication bypasses the normal Drupal login mechanism for REST requests. In order to log into the Drupal website like any other user would, these users need to enter their username and password into the Drupal login form. They cannot authenticate via the login form using using their key. If you do not want REST users to be able to log into your site by entering their regular Drupal credentials into the login form (see "Security implications", below), set their account status to "Blocked".
+Usernames in the list correspond to existing Drupal users, who should be assigned appropriate permissions in the "Islandora REST" section of `admin/people/permissions`. The only difference between these users and other users on the site is that when identified in REST requests with an accompanying `X-Authorization-User` header, they are authenticated using the accompanying key. In other words, the `username:key` authentication bypasses the normal Drupal login mechanism for REST requests. In order to log into the Drupal website like any other user would, these users need to enter their username and password into the Drupal login form. They cannot authenticate via the login form using using their key. If you do not want REST users to be able to log into your site by entering their regular Drupal credentials into the login form (see "Security implications", below), set their account status to "Blocked".
 
 Optionally, you can restrict access to the Islandora REST interface for each user from either a specific IP address or ranges of addresses. The IP whitelist is separated from the `username:key` pair with a pipe (`|`). For example, if your username is 'resty' and your key is 'iamarandom7key', an entry restricting allowing requests from the 10.0.0.2 IP address would look like:
 
 ```
-resty:iamarandom7key|10.0.2.2
+restyr|$S$D/zZv63BjzJo4rdKASjRkfbZrdNc1mcf8RFZfR4m0mmieIbbnPjM|10.0.2.2
 ```
 
 an entry restricting access from an entire IP range would look like:
 
 ```
-resty:iamarandom7key|199.60.1.0:199.60.18.255
+resty|$S$D/zZv63BjzJo4rdKASjRkfbZrdNc1mcf8RFZfR4m0mmieIbbnPjM|199.60.1.0:199.60.18.255
 ```
 
 and from multiple ranges:
 
 ```
-resty:iamarandom7key|199.60.1.0:199.60.18.255,142.58.224.0:142.58.255.255
+resty|$S$D/zZv63BjzJo4rdKASjRkfbZrdNc1mcf8RFZfR4m0mmieIbbnPjM|199.60.1.0:199.60.18.255,142.58.224.0:142.58.255.255
 ```
 
 IP whitelists only apply to REST requests and not to logging into the Drupal website.
@@ -51,13 +53,13 @@ You can also make API keys expire. If you add a date in ISO 8601 format (e.g. 20
 Expiry date with IP address or range:
 
 ```
-resty:iamarandom7key|199.60.1.0:199.60.18.255|2017-03-06T19:23:48-08:00
+resty|$S$D/zZv63BjzJo4rdKASjRkfbZrdNc1mcf8RFZfR4m0mmieIbbnPjM|199.60.1.0:199.60.18.255|2017-03-06T19:23:48-08:00
 ```
 
 Expiry date without IP address/range:
 
 ```
-resty:iamarandom7key||2017-03-06T19:23:48-08:00
+resty|$S$D/zZv63BjzJo4rdKASjRkfbZrdNc1mcf8RFZfR4m0mmieIbbnPjM||2017-03-06T19:23:48-08:00
 ```
 
 
@@ -71,6 +73,7 @@ You may want to consider the following before using this module:
 * API keys as implemented by this module are included in HTTP request headers, which are not normally logged by web servers and don't appear accidently in URLs pasted into emails/chat/etc., unlike API keys implemented as URL parameters.
 * As stated above, API keys as implemented by this module cannot be used to log in via Drupal's login form. They only apply to REST API requests.
 * Use API keys that are difficult to guess. UUID version 4 strings make good API keys.
+* The keys are stored in the Drupal database encrypted using the same function that Drupal uses to encrypt passwords.
 * Creating special Drupal users for REST requests and setting their account status to "Blocked" is good practice. These users should be given minimal Drupal permissions, specifically, only those permissions defined by the Islandora REST module.
 * Restricting access from specific IP addresses or IP ranges is good practice. Do it.
 * If the client does not need ongoing access to your REST interface, apply an expiry date.
