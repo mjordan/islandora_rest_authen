@@ -41,19 +41,19 @@ Usernames in the list correspond to existing Drupal users, who should be assigne
 
 ### IP whitelists and key expiry dates
 
-Optionally, you can restrict access to the Islandora REST interface for each user from either a specific IP address or ranges of addresses. The IP whitelist is separated from the username/key pair with a pipe (`|`). For example, if your username is 'resty' and your key is "$S$D/zZv63BjzJo4rdKASjRkfbZrdNc1mcf8RFZfR4m0mmieIbbnPjM", an entry restricting allowing requests from the 10.0.0.2 IP address would look like:
+Optionally, you can restrict access to the Islandora REST interface for each user from either a specific IP address or ranges of addresses. The IP whitelist is separated from the username/key pair with a pipe (`|`). For example, if your username is 'resty' and your encrypted key is "$S$D/zZv63BjzJo4rdKASjRkfbZrdNc1mcf8RFZfR4m0mmieIbbnPjM", an entry restricting allowing requests from the 10.0.0.2 IP address would look like:
 
 ```
 resty|$S$D/zZv63BjzJo4rdKASjRkfbZrdNc1mcf8RFZfR4m0mmieIbbnPjM|10.0.2.2
 ```
 
-an entry restricting access from an entire IP range would look like:
+An entry restricting access from an entire IP range would look like:
 
 ```
 resty|$S$D/zZv63BjzJo4rdKASjRkfbZrdNc1mcf8RFZfR4m0mmieIbbnPjM|199.60.1.0:199.60.18.255
 ```
 
-and from multiple ranges:
+And from multiple ranges:
 
 ```
 resty|$S$D/zZv63BjzJo4rdKASjRkfbZrdNc1mcf8RFZfR4m0mmieIbbnPjM|199.60.1.0:199.60.18.255,142.58.224.0:142.58.255.255
@@ -61,7 +61,7 @@ resty|$S$D/zZv63BjzJo4rdKASjRkfbZrdNc1mcf8RFZfR4m0mmieIbbnPjM|199.60.1.0:199.60.
 
 IP whitelists only apply to REST requests and not to logging into the Drupal website.
 
-You can also apply an expiry date to API keys. If you add a date in ISO 8601 format (e.g. 2017-03-06T19:23:48-08:00) to the end of the username/key string, the API key will only authenticate requests up until that time. If you add an expiry date and do not specify an IP range or address, you need to seprate the expiry date from the `username:key` pair with double pipes (`||`), which in effect defines an empty IP range. For example:
+You can also apply an expiry date to API keys. If you add a date in ISO 8601 format (e.g. 2017-03-06T19:23:48-08:00) to the end of the username/key entry, the API key will only authenticate requests up until that time. If you add an expiry date and do not specify an IP range or address, you need to seprate the expiry date from the username/key pair with double pipes (`||`), which in effect defines an empty IP range. For example:
 
 Expiry date with IP address or range:
 
@@ -89,7 +89,7 @@ You may want to consider the following before using this module:
 * Use API keys that are difficult to guess. UUID version 4 strings make good API keys.
 * Keys are stored in the database encrypted using the same function that Drupal uses to encrypt passwords.
 * Following the principle of least privilege, create special Drupal users for REST requests and set their account status to "Blocked". These users should be given minimal Drupal permissions, specifically, only those permissions defined by the Islandora REST module.
-* Restricting access from specific IP addresses or IP ranges is good practice. Do it.
+* Restricting access from specific IP addresses or IP ranges is good practice (and also consistent with the principle of least privilege)
 * If the client does not need ongoing access to your REST interface, apply an expiry date.
 * Enable logging of authentication requests using API keys.
 
