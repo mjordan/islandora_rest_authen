@@ -89,7 +89,6 @@ function islandora_rest_authen_authenticate() {
   if (preg_match('#^islandora/rest/#', current_path())) {
     $request_headers = getallheaders();
     if (isset($request_headers['X-Authorization-User'])) {
-      require_once DRUPAL_ROOT . '/' . variable_get('password_inc', 'includes/password.inc');
       list($rest_username, $request_key) = explode(':', $request_headers['X-Authorization-User']);
       $authorized_users = preg_split("/\\r\\n|\\r|\\n/", variable_get('islandora_rest_authen_users', ''));
       foreach ($authorized_users as $authorized_user_details) {
@@ -100,7 +99,7 @@ function islandora_rest_authen_authenticate() {
         $expiry = isset($entry[3]) ? $entry[3] : '';
 
         // Get the hashed version of the key supplied in the request.
-        $hashed_request_key = _password_crypt('sha512', $request_key, $local_key);
+        $hashed_request_key = islandora_rest_authen_get_hash($request_key);
 
         // Check for presence of IP whitelist.
         if (!isset($ip_whitelist)) {
@@ -268,6 +267,5 @@ function islandora_rest_authen_check_expiry($entry) {
  *   The hashed string.
  */
 function islandora_rest_authen_get_hash($string) {
-  require_once DRUPAL_ROOT . '/' . variable_get('password_inc', 'includes/password.inc');
-  return user_hash_password($string);
+  return hash('sha256', $string);
 }

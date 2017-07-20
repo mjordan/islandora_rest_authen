@@ -13,7 +13,7 @@ Utility module to provide username/API key authentication against the Islandora 
 
 Enable this module as you would any other, and configure it at `admin/islandora/tools/rest_authen`.
 
-The configuration option "REST users" is a list of username/key pairs, delimited by a pipe (`|`), one pair per line. The username half of the pair corresponds to an existing Drupal user. The key half of the pair, which is encrypted using the same method that Drupal uses to encrypt passwords, is used to authenticate REST requests made by the user:
+The configuration option "REST users" is a list of username/key pairs, delimited by a pipe (`|`), one pair per line. The username half of the pair corresponds to an existing Drupal user. The key half of the pair, which is encrypted using SHA-256, is used to authenticate REST requests made by the user:
 
 ```
 resty|$S$D/zZv63BjzJo4rdKASjRkfbZrdNc1mcf8RFZfR4m0mmieIbbnPjM
@@ -33,7 +33,7 @@ The plaintext version of a username/key pair registered in the "REST users" admi
 
 (Note that in the request, the username/plaintext key pair is separated by a colon, not a pipe.)
 
-During a request, Drupal applies its encryption algorithm to the incoming plaintext key, and if the encrypted version of the key matches the encrypted key stored with the username, the user is authenticated and the request continues. If it doesn't match, the request is denied.
+During a request, Drupal calculates a SHA-256 hash of the incoming plaintext key, and if the hashed version of the key matches the hashed version of the key associated with the username, the user is authenticated and the request continues. If it doesn't match, the request is denied.
 
 ### User management
 
@@ -87,8 +87,8 @@ You may want to consider the following before using this module:
 * API keys as implemented by this module are included in HTTP request headers, which are not normally logged by web servers and don't appear accidently in URLs pasted into emails/chat/etc., unlike API keys implemented as URL parameters.
 * As stated above, API keys as implemented by this module cannot be used to log in via Drupal's login form. They only apply to REST API requests.
 * Use API keys that are difficult to guess. UUID version 4 strings make good API keys.
-* Keys are stored in the database encrypted using the same function that Drupal uses to encrypt passwords.
-* Following the principle of least privilege, create special Drupal users for REST requests and set their account status to "Blocked". These users should be given minimal Drupal permissions, specifically, only those permissions defined by the Islandora REST module.
+* Keys are stored in the database encrypted using the standard SHA-256 algorithm.
+* Following the principle of least privilege, create special Drupal users for REST requests and set their account status to "Blocked". These users should be given minimal Drupal permissions, specifically, only those permissions defined by the Islandora REST module. "Blocked" applies only to logging in via the standard Drupal form, it does not prevent the user from making REST requests. To do that, remove the user from the list of REST users managed by this module.
 * Restricting access from specific IP addresses or IP ranges is good practice (and also consistent with the principle of least privilege)
 * If the client does not need ongoing access to your REST interface, apply an expiry date.
 * Enable logging of authentication requests using API keys.
