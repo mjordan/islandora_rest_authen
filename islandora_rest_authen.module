@@ -89,68 +89,49 @@ function islandora_rest_authen_authenticate() {
   if (preg_match('#^islandora/rest/#', current_path())) {
     $request_headers = getallheaders();
     if (isset($request_headers['X-Authorization-User'])) {
-      list($rest_username, $request_key) = explode(':', $request_headers['X-Authorization-User']);
-      $authorized_users = preg_split("/\\r\\n|\\r|\\n/", variable_get('islandora_rest_authen_users', ''));
+      list($request_username, $request_key) = explode(':', $request_headers['X-Authorization-User']);
+      $authorized_users = preg_split("/\\r\\n|\\r|\\n/", trim(variable_get('islandora_rest_authen_users', '')));
+      $rest_users = array();
       foreach ($authorized_users as $authorized_user_details) {
-        $entry = explode('|', $authorized_user_details);
+        $entry = explode('|', trim($authorized_user_details));
         $local_username = isset($entry[0]) ? $entry[0] : '';
         $local_key = isset($entry[1]) ? $entry[1] : '';
         $ip_whitelist = isset($entry[2]) ? $entry[2] : '';
         $expiry = isset($entry[3]) ? $entry[3] : '';
+        $rest_users[$local_username] = array(
+          'key' => $local_key,
+          'ip_whitelist' => $ip_whitelist,
+          'expiry' => $expiry,
+        );
+      }
 
+      if (array_key_exists($request_username, $rest_users)) {
         // Get the hashed version of the key supplied in the request.
         $hashed_request_key = islandora_rest_authen_get_hash($request_key);
 
-        // Check for presence of IP whitelist.
-        if (!isset($ip_whitelist)) {
-          $ip_whitelist = '';
-        }
-
-        // Perform tests to allow/deny request.
-        if (($rest_username == $local_username) && ($hashed_request_key == $local_key)) {
-          if (strlen($ip_whitelist)) {
-            if (islandora_rest_authen_check_ip($rest_username, $ip_whitelist)) {
-              if (!islandora_rest_authen_check_expiry($authorized_user_details)) {
-                // Condition: Credentials match, IP address is OK,
-                // key has expired.
-                header('HTTP/1.0 401 Unauthorized', TRUE);
-                exit;
-              }
-              // Condition: Credentials match, IP address is allowed,
-              // expiry is OK.
-              islandora_rest_authen_log_in($rest_username);
-            }
-            else {
-              // Condition: Credentials match, but IP address is disallowed.
-              header('HTTP/1.0 401 Unauthorized', TRUE);
-              exit;
-            }
-          }
-          else {
-            if (!islandora_rest_authen_check_expiry($authorized_user_details)) {
-              // Condition: Credentials match, there is no IP address
-              // whitelist, key has expired.
-              header('HTTP/1.0 401 Unauthorized', TRUE);
-              exit;
-            }
-            // Condition: Credentials match, there is no IP address whitelist,
-            // expiry is OK.
-            islandora_rest_authen_log_in($rest_username);
+        // Condition: Request is from outside IP address whitelist.
+        if (strlen($rest_users[$request_username]['ip_whitelist'])) {
+          if (!islandora_rest_authen_check_ip($request_username, $rest_users[$request_username]['ip_whitelist'])) {
+            header('HTTP/1.0 401 Unauthorized', TRUE);
+            exit;
           }
         }
-        else {
-          // Condition: Credentials do not match. Nothing else matters.
-          if (variable_get('islandora_rest_authen_log_api_key_logins', 1)) {
-            watchdog(
-              'islandora_rest_authen',
-              "Login attempt using REST API key failed for user !user.",
-              array('!user' => $rest_username)
-            );
+        // Condition: Request is from outside allow time range.
+        if (strlen($rest_users[$request_username]['expiry'])) {
+          if (!islandora_rest_authen_check_expiry($rest_users[$request_username], $rest_users[$request_username]['expiry'])) {
+            header('HTTP/1.0 401 Unauthorized', TRUE);
+            exit;
           }
-          header('HTTP/1.0 401 Unauthorized', TRUE);
-          exit;
         }
-
+        // Check the request key against local users's keys.
+        if ($hashed_request_key == $rest_users[$request_username]['key']) {
+          islandora_rest_authen_log_in($request_username);
+        }
+      }
+      else {
+        // Condition: User is not registered to use the REST interface.
+        header('HTTP/1.0 401 Unauthorized', TRUE);
+        exit;
       }
     }
   }
@@ -226,20 +207,20 @@ function islandora_rest_authen_check_ip($username, $ip_ranges) {
 /**
  * Compares the current time to the API key's expiry date, if one is present.
  *
- * @param string $entry
- *   The authorized user entry.
+ * @param string $username
+ *   The username supplied in the REST request.
+ * @param string $expiry
+ *   The expiry date supplied in the REST request.
  *
  * @return bool
  *   TRUE if the entry does not contain an expiry date or if the
  *   date is in the future; FALSE if the date is present and in
  *   the past.
  */
-function islandora_rest_authen_check_expiry($entry) {
-  $entry_parts = explode('|', $entry);
-  if (count($entry_parts) === 4) {
+function islandora_rest_authen_check_expiry($username, $expiry) {
+  if (strlen($expiry)) {
     $now = time();
-    $expiry_date = $entry_parts[3];
-    if (strtotime($expiry_date) > $now) {
+    if (strtotime($expiry) > $now) {
       // Expiry date is in the future.
       return TRUE;
     }
