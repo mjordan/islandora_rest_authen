@@ -2,6 +2,8 @@
 
 Utility module to provide username/API key authentication against the Islandora REST interface, with options to restrict access to a list of IP addresss and to set an expiry date on the key.
 
+This module is an alternative to the token-based authentication implemented in the Islandora REST module, which does not offer the ability to restrict accces based on IP address or time.
+
 ## Requirements
 
 * [Islandora](https://github.com/Islandora/islandora)
@@ -33,7 +35,7 @@ The plaintext version of a username/key pair registered in the "REST users" admi
 
 (Note that in the request, the username/plaintext key pair is separated by a colon, not a pipe.)
 
-During a request, Drupal calculates a SHA-256 hash of the incoming plaintext key, and if the hashed version of the key matches the hashed version of the key associated with the username, the user is authenticated and the request continues. If it doesn't match, the request is denied.
+During a request, Drupal calculates a SHA-256 hash of the incoming plaintext key, and if the hashed version of the key matches the hashed version of the key associated with the username, the user is authenticated and the request continues. If it doesn't match, the request is denied with an HTTP `401 Unauthorized` response.
 
 ### User management
 
