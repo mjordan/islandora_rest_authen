@@ -21,7 +21,7 @@ resty|$S$D/zZv63BjzJo4rdKASjRkfbZrdNc1mcf8RFZfR4m0mmieIbbnPjM
 
 ### Encrypting keys
 
-It is important to remember that you distribute plaintext keys to people using your REST API, and save the encrypted version of those keys in the "REST users" field. Plaintext keys can contain any character other than a colon (`:`).
+It is important to remember that you distribute plaintext keys to people using your REST API (and they use the unencrypted version in their REST requests), and save the encrypted version of those keys in the "REST users" field. Plaintext keys can contain any character other than a colon (`:`). We encrypt the keys in order to store them in the Drupal database.
 
 To encrypt a key, use the utility provided within the admin settings form. Enter the plaintext key and click the "Encrypt key" button, then copy the resulting string into the pipe-delimited record in the "REST users" field.
 
@@ -29,7 +29,7 @@ To encrypt a key, use the utility provided within the admin settings form. Enter
 
 The plaintext version of a username/key pair registered in the "REST users" admin setting must accompany REST requests in an "X-Authorization-User" HTTP header, e.g.:
 
-`curl -H "X-Authorization-User: resty:6f172401-a806-4b0a-920b-032cf3a06a56" "http://localhost:8000/islandora/rest/v1/object/book:16"`
+`curl -H "X-Authorization-User: resty:myplaintextkey" "http://localhost:8000/islandora/rest/v1/object/book:16"`
 
 (Note that in the request, the username/plaintext key pair is separated by a colon, not a pipe.)
 
